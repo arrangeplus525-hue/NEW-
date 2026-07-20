@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { signOutAction } from "./login/actions";
 
 const secondaryLinks = [
   { href: "/price-master", label: "単価マスタ" },
@@ -42,6 +43,12 @@ export default function Home() {
             </Link>
           ))}
         </div>
+
+        <form action={signOutAction} className="pt-2">
+          <button type="submit" className="text-sm text-neutral-400 hover:text-neutral-600 hover:underline">
+            ログアウト
+          </button>
+        </form>
       </div>
     </div>
   );
