@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-neutral-50 p-6">
       <div className="w-full max-w-md space-y-4 text-center">
-        <h1 className="text-2xl font-bold text-neutral-900">リフォームERP</h1>
+        <h1 className="text-2xl font-bold text-neutral-900">ARRANGE PLUS ERP</h1>
         <p className="text-sm text-neutral-500">Phase1〜7（開発中）</p>
 
         <Link
