@@ -105,7 +105,6 @@ export function EstimateForm({
         projectId: selectedProjectId || undefined,
       });
       setSavedEstimateId(estimateId);
-      window.open(`/api/estimates/${estimateId}/pdf`, "_blank");
     } catch (e) {
       setError(e instanceof Error ? e.message : "保存に失敗しました");
     } finally {
@@ -325,7 +324,15 @@ export function EstimateForm({
       {error && <p className="text-sm text-red-600">{error}</p>}
       {savedEstimateId && !error && (
         <p className="text-sm text-green-700">
-          保存しました（見積ID: {savedEstimateId}）。PDFが別タブで開きます。
+          保存しました。{" "}
+          <a
+            href={`/api/estimates/${savedEstimateId}/pdf`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline hover:text-green-800"
+          >
+            PDFを開く
+          </a>
         </p>
       )}
 
