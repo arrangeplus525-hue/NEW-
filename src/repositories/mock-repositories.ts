@@ -226,6 +226,9 @@ class MockEstimateRepository implements EstimateRepository {
   async list(): Promise<Estimate[]> {
     return store.estimates;
   }
+  async getById(id: string): Promise<Estimate | null> {
+    return store.estimates.find((e) => e.id === id) ?? null;
+  }
   async listByProject(projectId: string): Promise<Estimate[]> {
     return store.estimates.filter((e) => e.projectId === projectId);
   }

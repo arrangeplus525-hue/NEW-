@@ -6,18 +6,18 @@ import { COMPANY_INFO } from "@/domain/company";
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const estimates = await estimateRepository.list();
-  const estimate = estimates.find((e) => e.id === id);
+  const estimate = await estimateRepository.getById(id);
   if (!estimate) {
     return new Response("見積が見つかりません", { status: 404 });
   }
 
-  const customer = await customerRepository.getById(estimate.customerId);
+  const [customer, project] = await Promise.all([
+    customerRepository.getById(estimate.customerId),
+    projectRepository.getById(estimate.projectId),
+  ]);
   if (!customer) {
     return new Response("顧客が見つかりません", { status: 404 });
   }
-
-  const project = await projectRepository.getById(estimate.projectId);
 
   // PDF表紙専用の計算：小計①（各行の売価合計）→ 諸経費②を加算 → 調整後価格（手入力、未入力なら①+②）
   // → 値引き（①+②の合計－調整後価格）→ 消費税は調整後価格に課税。

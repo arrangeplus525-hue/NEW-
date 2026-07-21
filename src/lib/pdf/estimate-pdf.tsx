@@ -1,3 +1,4 @@
+import fs from "fs";
 import path from "path";
 import {
   Document,
@@ -10,16 +11,18 @@ import {
   renderToBuffer,
 } from "@react-pdf/renderer";
 
+// フォントはTTF形式で登録する。WOFFのままだと@react-pdf/rendererの内部処理が
+// 著しく遅くなる（実測でPDF1件の生成が17秒前後→TTFに変換後は1秒未満に短縮）。
 Font.register({
   family: "NotoSansJP",
   fonts: [
-    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Regular.woff"), fontWeight: "normal" },
-    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Bold.woff"), fontWeight: "bold" },
+    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Regular.ttf"), fontWeight: "normal" },
+    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Bold.ttf"), fontWeight: "bold" },
   ],
 });
 
-const LOGO_PATH = path.join(process.cwd(), "src/assets/images/company-logo.jpeg");
-const SEAL_PATH = path.join(process.cwd(), "src/assets/images/company-seal.jpeg");
+const LOGO_BUFFER = fs.readFileSync(path.join(process.cwd(), "src/assets/images/company-logo.jpeg"));
+const SEAL_BUFFER = fs.readFileSync(path.join(process.cwd(), "src/assets/images/company-seal.jpeg"));
 
 // 顧客に渡すPDFには売価情報だけを載せる。原価・利益率は社内情報のため含めない。
 export interface EstimatePdfLine {
@@ -346,7 +349,7 @@ export function EstimateDocument({ data }: { data: EstimatePdfData }) {
 
           <View style={styles.companyBox}>
             <View style={styles.companyHeaderRow}>
-              <Image src={LOGO_PATH} style={styles.companyLogo} />
+              <Image src={LOGO_BUFFER} style={styles.companyLogo} />
               <Text style={styles.companyName}>{data.company.name}</Text>
             </View>
             <View style={styles.companySealRow}>
@@ -359,7 +362,7 @@ export function EstimateDocument({ data }: { data: EstimatePdfData }) {
                 <Text>MAIL：{data.company.email}</Text>
                 <Text>登録番号：{data.company.invoiceRegistrationNumber}</Text>
               </View>
-              <Image src={SEAL_PATH} style={styles.companySeal} />
+              <Image src={SEAL_BUFFER} style={styles.companySeal} />
             </View>
           </View>
         </View>

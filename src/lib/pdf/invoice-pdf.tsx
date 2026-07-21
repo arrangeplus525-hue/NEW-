@@ -1,11 +1,13 @@
 import path from "path";
 import { Document, Page, Text, View, StyleSheet, Font, renderToBuffer } from "@react-pdf/renderer";
 
+// フォントはTTF形式で登録する。WOFFのままだと@react-pdf/rendererの内部処理が
+// 著しく遅くなる（estimate-pdf.tsxで実測、17秒前後→1秒未満に短縮）。
 Font.register({
   family: "NotoSansJP",
   fonts: [
-    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Regular.woff"), fontWeight: "normal" },
-    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Bold.woff"), fontWeight: "bold" },
+    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Regular.ttf"), fontWeight: "normal" },
+    { src: path.join(process.cwd(), "src/assets/fonts/NotoSansJP-Bold.ttf"), fontWeight: "bold" },
   ],
 });
 

@@ -55,6 +55,7 @@ export interface ProjectRepository {
 export interface EstimateRepository {
   save(estimate: Estimate): Promise<Estimate>;
   list(): Promise<Estimate[]>;
+  getById(id: string): Promise<Estimate | null>;
   listByProject(projectId: string): Promise<Estimate[]>;
 }
 

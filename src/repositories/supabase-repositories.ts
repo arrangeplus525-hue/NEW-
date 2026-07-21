@@ -331,6 +331,14 @@ class SupabaseEstimateRepository implements EstimateRepository {
     return this.hydrate(data ?? []);
   }
 
+  async getById(id: string): Promise<Estimate | null> {
+    const { data, error } = await getSupabaseClient().from("estimates").select("*").eq("id", id).maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    const [estimate] = await this.hydrate([data]);
+    return estimate ?? null;
+  }
+
   async listByProject(projectId: string): Promise<Estimate[]> {
     const { data, error } = await getSupabaseClient()
       .from("estimates")
