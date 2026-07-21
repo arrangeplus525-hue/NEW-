@@ -28,6 +28,9 @@ export function EstimateForm({
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
   const [selectedProjectId, setSelectedProjectId] = useState(""); // ""は「新しい案件を作成」
   const [title, setTitle] = useState("");
+  const [siteAddress, setSiteAddress] = useState(""); // 現場住所（新規案件作成時のみ使用）
+  const [overheadFeeInput, setOverheadFeeInput] = useState(""); // 諸経費
+  const [adjustedPriceInput, setAdjustedPriceInput] = useState(""); // 調整後価格
 
   const [checkedItemIds, setCheckedItemIds] = useState<Set<string>>(new Set());
   const [quantityOverrides, setQuantityOverrides] = useState<Map<string, number>>(new Map());
@@ -222,6 +225,9 @@ export function EstimateForm({
         title,
         lines,
         projectId: selectedProjectId || undefined,
+        siteAddress: siteAddress.trim() || undefined,
+        overheadFee: overheadFeeInput ? Number(overheadFeeInput) : undefined,
+        adjustedPrice: adjustedPriceInput ? Number(adjustedPriceInput) : undefined,
       });
       setSavedEstimateId(estimateId);
     } catch (e) {
@@ -282,6 +288,47 @@ export function EstimateForm({
               placeholder="例：浴室リフォーム工事"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+            />
+          </label>
+          {!selectedProjectId && (
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-neutral-700">
+                現場住所（任意・見積書に表示されます）
+              </span>
+              <input
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                placeholder="例：名古屋市中川区打中1丁目77"
+                value={siteAddress}
+                onChange={(e) => setSiteAddress(e.target.value)}
+              />
+            </label>
+          )}
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-neutral-700">
+              諸経費（任意・現場管理・固定費など）
+            </span>
+            <input
+              type="number"
+              min={0}
+              step="any"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+              placeholder="例：293695"
+              value={overheadFeeInput}
+              onChange={(e) => setOverheadFeeInput(e.target.value)}
+            />
+          </label>
+          <label className="block">
+            <span className="mb-1 block text-sm font-medium text-neutral-700">
+              調整後価格（任意・空欄なら値引きなし）
+            </span>
+            <input
+              type="number"
+              min={0}
+              step="any"
+              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+              placeholder="例：3450000"
+              value={adjustedPriceInput}
+              onChange={(e) => setAdjustedPriceInput(e.target.value)}
             />
           </label>
         </div>

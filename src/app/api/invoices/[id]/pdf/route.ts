@@ -1,5 +1,6 @@
 import { customerRepository, invoiceRepository } from "@/repositories";
 import { renderInvoicePdf } from "@/lib/pdf/invoice-pdf";
+import { COMPANY_INFO } from "@/domain/company";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -15,7 +16,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const pdfBuffer = await renderInvoicePdf({
-    companyName: "株式会社サンプルリフォーム",
+    companyName: COMPANY_INFO.name,
     invoiceNumber: invoice.invoiceNumber,
     issueDateLabel: new Date(invoice.issueDate).toLocaleDateString("ja-JP"),
     customerName: customer.name,

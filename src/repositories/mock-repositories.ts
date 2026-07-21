@@ -190,11 +190,12 @@ class MockProjectRepository implements ProjectRepository {
   async listByCustomer(customerId: string): Promise<Project[]> {
     return store.projects.filter((p) => p.customerId === customerId);
   }
-  async createForCustomer(customerId: string, title: string): Promise<Project> {
+  async createForCustomer(customerId: string, title: string, siteAddress?: string): Promise<Project> {
     const project: Project = {
       id: crypto.randomUUID(),
       customerId,
       title,
+      siteAddress,
       status: "estimate",
       createdAt: new Date().toISOString(),
     };

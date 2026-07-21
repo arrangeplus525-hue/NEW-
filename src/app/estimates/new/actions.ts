@@ -10,6 +10,9 @@ export interface SaveEstimateInput {
   lines: EstimateLine[];
   // 指定があれば既存案件に追加、無ければ件名を案件名として新規案件を作成する。
   projectId?: string;
+  siteAddress?: string; // 新規案件作成時のみ使用（現場住所）
+  overheadFee?: number; // 諸経費
+  adjustedPrice?: number; // 調整後価格
 }
 
 export async function saveEstimateAction(input: SaveEstimateInput): Promise<{ estimateId: string }> {
@@ -28,7 +31,7 @@ export async function saveEstimateAction(input: SaveEstimateInput): Promise<{ es
       throw new Error("案件が見つかりません");
     }
   } else {
-    project = await projectRepository.createForCustomer(customer.id, input.title);
+    project = await projectRepository.createForCustomer(customer.id, input.title, input.siteAddress);
   }
 
   const estimate: Estimate = {
@@ -40,6 +43,8 @@ export async function saveEstimateAction(input: SaveEstimateInput): Promise<{ es
     issueDate: new Date().toISOString(),
     lines: input.lines,
     taxRate: 0.1,
+    overheadFee: input.overheadFee,
+    adjustedPrice: input.adjustedPrice,
     status: "draft",
     createdAt: new Date().toISOString(),
   };

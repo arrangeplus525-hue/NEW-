@@ -221,6 +221,7 @@ function mapProject(row: Record<string, unknown>): Project {
     id: row.id as string,
     customerId: row.customer_id as string,
     title: row.title as string,
+    siteAddress: (row.site_address as string | null) ?? undefined,
     status: row.status as ProjectStatus,
     createdAt: row.created_at as string,
   };
@@ -246,10 +247,10 @@ class SupabaseProjectRepository implements ProjectRepository {
     if (error) throw error;
     return (data ?? []).map(mapProject);
   }
-  async createForCustomer(customerId: string, title: string): Promise<Project> {
+  async createForCustomer(customerId: string, title: string, siteAddress?: string): Promise<Project> {
     const { data, error } = await getSupabaseClient()
       .from("projects")
-      .insert({ customer_id: customerId, title, status: "estimate" })
+      .insert({ customer_id: customerId, title, site_address: siteAddress ?? null, status: "estimate" })
       .select()
       .single();
     if (error) throw error;
@@ -289,6 +290,8 @@ class SupabaseEstimateRepository implements EstimateRepository {
       title: estimate.title,
       issue_date: estimate.issueDate,
       tax_rate: estimate.taxRate,
+      overhead_fee: estimate.overheadFee ?? 0,
+      adjusted_price: estimate.adjustedPrice ?? null,
       status: estimate.status,
       created_at: estimate.createdAt,
     });
@@ -365,6 +368,8 @@ class SupabaseEstimateRepository implements EstimateRepository {
       issueDate: row.issue_date as string,
       lines: linesByEstimate.get(row.id as string) ?? [],
       taxRate: n(row.tax_rate),
+      overheadFee: n(row.overhead_fee),
+      adjustedPrice: row.adjusted_price != null ? n(row.adjusted_price) : undefined,
       status: row.status as Estimate["status"],
       createdAt: row.created_at as string,
     }));

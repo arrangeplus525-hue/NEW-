@@ -1,6 +1,7 @@
-import { customerRepository, estimateRepository } from "@/repositories";
+import { customerRepository, estimateRepository, projectRepository } from "@/repositories";
 import { renderEstimatePdf } from "@/lib/pdf/estimate-pdf";
-import { calcEstimateSummary, calcLineTotals } from "@/lib/calculations/estimate-calculations";
+import { calcLineTotals } from "@/lib/calculations/estimate-calculations";
+import { COMPANY_INFO } from "@/domain/company";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -16,30 +17,46 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     return new Response("顧客が見つかりません", { status: 404 });
   }
 
-  const summary = calcEstimateSummary(estimate.lines, estimate.taxRate);
+  const project = await projectRepository.getById(estimate.projectId);
+
+  // PDF表紙専用の計算：小計①（各行の売価合計）→ 諸経費②を加算 → 調整後価格（手入力、未入力なら①+②）
+  // → 値引き（①+②の合計－調整後価格）→ 消費税は調整後価格に課税。
+  // 既存のcalcEstimateSummary（社内向けサマリー・利益計算）はこのPDF専用ロジックとは独立しており、変更していない。
+  const lines = estimate.lines.map((line) => {
+    const totals = calcLineTotals(line);
+    return {
+      category: line.category,
+      name: line.name,
+      unit: line.unit,
+      quantity: line.quantity,
+      sellPrice: line.sellPrice,
+      lineTotal: totals.sellTotal,
+    };
+  });
+  const subtotalSell = lines.reduce((sum, l) => sum + l.lineTotal, 0);
+  const overheadFee = estimate.overheadFee ?? 0;
+  const combinedTotal = subtotalSell + overheadFee;
+  const adjustedPrice = estimate.adjustedPrice ?? combinedTotal;
+  const discount = combinedTotal - adjustedPrice;
+  const taxAmount = Math.round(adjustedPrice * estimate.taxRate);
+  const totalAmount = adjustedPrice + taxAmount;
 
   // 顧客向けPDFには売価のみを載せる。原価・利益率は社内情報のため出力しない。
   const pdfBuffer = await renderEstimatePdf({
-    companyName: "株式会社サンプルリフォーム",
+    company: COMPANY_INFO,
     estimateNumber: estimate.estimateNumber,
     issueDateLabel: new Date(estimate.issueDate).toLocaleDateString("ja-JP"),
     customerName: customer.name,
-    customerAddress: customer.address,
+    siteName: project?.title ?? estimate.title,
+    siteAddress: project?.siteAddress,
     title: estimate.title,
-    lines: estimate.lines.map((line) => {
-      const totals = calcLineTotals(line);
-      return {
-        category: line.category,
-        name: line.name,
-        unit: line.unit,
-        quantity: line.quantity,
-        sellPrice: line.sellPrice,
-        lineTotal: totals.sellTotal,
-      };
-    }),
-    subtotalSell: summary.subtotalSell,
-    taxAmount: summary.taxAmount,
-    totalAmount: summary.totalAmount,
+    lines,
+    subtotalSell,
+    overheadFee,
+    adjustedPrice,
+    discount,
+    taxAmount,
+    totalAmount,
   });
 
   return new Response(new Uint8Array(pdfBuffer), {

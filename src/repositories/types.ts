@@ -48,7 +48,7 @@ export interface ProjectRepository {
   list(): Promise<Project[]>;
   getById(id: string): Promise<Project | null>;
   listByCustomer(customerId: string): Promise<Project[]>;
-  createForCustomer(customerId: string, title: string): Promise<Project>;
+  createForCustomer(customerId: string, title: string, siteAddress?: string): Promise<Project>;
   updateStatus(id: string, status: ProjectStatus): Promise<Project>;
 }
 

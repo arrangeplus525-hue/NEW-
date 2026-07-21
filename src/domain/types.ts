@@ -43,6 +43,7 @@ export interface Project {
   id: string;
   customerId: string;
   title: string;
+  siteAddress?: string; // 現場住所（見積書の表紙に表示）
   status: ProjectStatus;
   createdAt: string;
 }
@@ -69,6 +70,8 @@ export interface Estimate {
   issueDate: string;
   lines: EstimateLine[];
   taxRate: number;
+  overheadFee?: number; // 諸経費（手入力、未入力なら0）
+  adjustedPrice?: number; // 調整後価格（手入力、未入力なら小計＋諸経費がそのまま使われ値引きなし）
   status: EstimateStatus;
   createdAt: string;
 }
