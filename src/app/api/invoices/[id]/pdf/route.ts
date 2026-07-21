@@ -28,7 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return new Response(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
+      "Content-Disposition": `inline; filename="invoice-${invoice.invoiceNumber}.pdf"`,
     },
   });
 }

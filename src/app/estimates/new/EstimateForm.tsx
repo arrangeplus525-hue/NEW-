@@ -25,7 +25,14 @@ export function EstimateForm({
   priceItems: PriceMasterItem[];
   projects: Project[];
 }) {
+  // 顧客管理に登録する前に見積を作ることが多いため、「新規顧客を登録」をデフォルトにしている。
+  const [customerMode, setCustomerMode] = useState<"new" | "existing">("new");
   const [customerId, setCustomerId] = useState(customers[0]?.id ?? "");
+  const [newCustomerName, setNewCustomerName] = useState("");
+  const [newCustomerPhone, setNewCustomerPhone] = useState("");
+  const [newCustomerEmail, setNewCustomerEmail] = useState("");
+  const [newCustomerPostalCode, setNewCustomerPostalCode] = useState("");
+  const [newCustomerAddress, setNewCustomerAddress] = useState("");
   const [selectedProjectId, setSelectedProjectId] = useState(""); // ""は「新しい案件を作成」
   const [title, setTitle] = useState("");
   const [siteAddress, setSiteAddress] = useState(""); // 現場住所（新規案件作成時のみ使用）
@@ -35,6 +42,10 @@ export function EstimateForm({
   const [checkedItemIds, setCheckedItemIds] = useState<Set<string>>(new Set());
   const [quantityOverrides, setQuantityOverrides] = useState<Map<string, number>>(new Map());
   const [sellPriceOverrides, setSellPriceOverrides] = useState<Map<string, number>>(new Map());
+  // 見積明細のid（DBのestimate_lines.idは全体でユニークなため、単価マスタ項目のidを
+  // そのまま使い回すと別の見積で同じ項目を使った際に主キー衝突が起きる）。
+  // チェックが入った瞬間に1回だけ発行し、以後の再描画では使い回す。
+  const [lineIds, setLineIds] = useState<Map<string, string>>(new Map());
   const [floorAreaInput, setFloorAreaInput] = useState("");
 
   const [saving, setSaving] = useState(false);
@@ -66,7 +77,7 @@ export function EstimateForm({
       priceItems
         .filter((item) => checkedItemIds.has(item.id))
         .map((item) => ({
-          id: item.id,
+          id: lineIds.get(item.id) ?? item.id,
           priceItemId: item.id,
           category: item.category,
           name: item.name,
@@ -75,7 +86,7 @@ export function EstimateForm({
           costPrice: item.costPrice,
           sellPrice: sellPriceOverrides.get(item.id) ?? item.sellPrice,
         })),
-    [priceItems, checkedItemIds, quantityOverrides, sellPriceOverrides]
+    [priceItems, checkedItemIds, quantityOverrides, sellPriceOverrides, lineIds]
   );
 
   const summary = useMemo(() => calcEstimateSummary(lines, 0.1), [lines]);
@@ -108,6 +119,7 @@ export function EstimateForm({
       const floorAreaSqm = Number(floorAreaInput) || 0;
       const defaultQty = item.unit === "㎡" && floorAreaSqm > 0 ? floorAreaSqm : 1;
       setQuantityOverrides((prev) => new Map(prev).set(item.id, defaultQty));
+      setLineIds((prev) => new Map(prev).set(item.id, crypto.randomUUID()));
     } else {
       setQuantityOverrides((prev) => {
         const next = new Map(prev);
@@ -115,6 +127,11 @@ export function EstimateForm({
         return next;
       });
       setSellPriceOverrides((prev) => {
+        const next = new Map(prev);
+        next.delete(item.id);
+        return next;
+      });
+      setLineIds((prev) => {
         const next = new Map(prev);
         next.delete(item.id);
         return next;
@@ -177,6 +194,7 @@ export function EstimateForm({
       const rows: ChecklistRow[] = data.rows ?? [];
       const nextChecked = new Set(checkedItemIds);
       const nextQty = new Map(quantityOverrides);
+      const nextLineIds = new Map(lineIds);
       const unmatched: ChecklistRow[] = [];
 
       for (const row of rows) {
@@ -188,6 +206,9 @@ export function EstimateForm({
         if (match) {
           nextChecked.add(match.id);
           nextQty.set(match.id, row.quantity > 0 ? row.quantity : 1);
+          if (!nextLineIds.has(match.id)) {
+            nextLineIds.set(match.id, crypto.randomUUID());
+          }
         } else {
           unmatched.push(row);
         }
@@ -195,6 +216,7 @@ export function EstimateForm({
 
       setCheckedItemIds(nextChecked);
       setQuantityOverrides(nextQty);
+      setLineIds(nextLineIds);
       setUnmatchedRows(unmatched);
     } catch {
       setChecklistPdfError("PDFの読み取りに失敗しました。時間をおいて再度お試しください。");
@@ -205,8 +227,12 @@ export function EstimateForm({
 
   async function handleSaveAndCreatePdf() {
     setError(null);
-    if (!customerId) {
+    if (customerMode === "existing" && !customerId) {
       setError("顧客を選択してください");
+      return;
+    }
+    if (customerMode === "new" && !newCustomerName.trim()) {
+      setError("顧客名を入力してください");
       return;
     }
     if (!title.trim()) {
@@ -221,10 +247,20 @@ export function EstimateForm({
     setSaving(true);
     try {
       const { estimateId } = await saveEstimateAction({
-        customerId,
+        customerId: customerMode === "existing" ? customerId : undefined,
+        newCustomer:
+          customerMode === "new"
+            ? {
+                name: newCustomerName,
+                phone: newCustomerPhone.trim() || undefined,
+                email: newCustomerEmail.trim() || undefined,
+                postalCode: newCustomerPostalCode.trim() || undefined,
+                address: newCustomerAddress.trim() || undefined,
+              }
+            : undefined,
         title,
         lines,
-        projectId: selectedProjectId || undefined,
+        projectId: customerMode === "existing" ? selectedProjectId || undefined : undefined,
         siteAddress: siteAddress.trim() || undefined,
         overheadFee: overheadFeeInput ? Number(overheadFeeInput) : undefined,
         adjustedPrice: adjustedPriceInput ? Number(adjustedPriceInput) : undefined,
@@ -247,22 +283,93 @@ export function EstimateForm({
       </header>
 
       <section className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5 shadow-sm">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium text-neutral-700">顧客</span>
-            <select
-              className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
-              value={customerId}
-              onChange={(e) => handleCustomerChange(e.target.value)}
-            >
-              {customers.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+        <div className="flex gap-4 text-sm">
+          <label className="flex items-center gap-1.5">
+            <input
+              type="radio"
+              name="customerMode"
+              checked={customerMode === "new"}
+              onChange={() => setCustomerMode("new")}
+            />
+            新しい顧客を登録する
           </label>
-          {customerProjects.length > 0 && (
+          <label className="flex items-center gap-1.5">
+            <input
+              type="radio"
+              name="customerMode"
+              checked={customerMode === "existing"}
+              onChange={() => setCustomerMode("existing")}
+            />
+            既存の顧客から選ぶ
+          </label>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          {customerMode === "new" ? (
+            <>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-neutral-700">顧客名</span>
+                <input
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                  placeholder="例：山田太郎"
+                  value={newCustomerName}
+                  onChange={(e) => setNewCustomerName(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-neutral-700">電話番号（任意）</span>
+                <input
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                  placeholder="例：090-1234-5678"
+                  value={newCustomerPhone}
+                  onChange={(e) => setNewCustomerPhone(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-neutral-700">メール（任意）</span>
+                <input
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                  placeholder="例：yamada@example.com"
+                  value={newCustomerEmail}
+                  onChange={(e) => setNewCustomerEmail(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="mb-1 block text-sm font-medium text-neutral-700">郵便番号（任意）</span>
+                <input
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                  placeholder="例：458-0801"
+                  value={newCustomerPostalCode}
+                  onChange={(e) => setNewCustomerPostalCode(e.target.value)}
+                />
+              </label>
+              <label className="block sm:col-span-2">
+                <span className="mb-1 block text-sm font-medium text-neutral-700">顧客住所（任意）</span>
+                <input
+                  className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                  placeholder="例：名古屋市中川区打中1丁目77"
+                  value={newCustomerAddress}
+                  onChange={(e) => setNewCustomerAddress(e.target.value)}
+                />
+              </label>
+            </>
+          ) : (
+            <label className="block">
+              <span className="mb-1 block text-sm font-medium text-neutral-700">顧客</span>
+              <select
+                className="w-full rounded-lg border border-neutral-300 px-3 py-2 text-base"
+                value={customerId}
+                onChange={(e) => handleCustomerChange(e.target.value)}
+              >
+                {customers.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
+          {customerMode === "existing" && customerProjects.length > 0 && (
             <label className="block">
               <span className="mb-1 block text-sm font-medium text-neutral-700">案件</span>
               <select
@@ -497,7 +604,7 @@ export function EstimateForm({
                         step="any"
                         className="w-20 rounded border border-neutral-300 px-2 py-1"
                         value={line.quantity}
-                        onChange={(e) => updateQuantity(line.id, Number(e.target.value))}
+                        onChange={(e) => updateQuantity(line.priceItemId, Number(e.target.value))}
                       />
                     </td>
                     <td className="px-4 py-3">
@@ -506,7 +613,7 @@ export function EstimateForm({
                         min={0}
                         className="w-28 rounded border border-neutral-300 px-2 py-1"
                         value={line.sellPrice}
-                        onChange={(e) => updateSellPrice(line.id, Number(e.target.value))}
+                        onChange={(e) => updateSellPrice(line.priceItemId, Number(e.target.value))}
                       />
                     </td>
                     <td className="px-4 py-3 font-medium">{yen(totals.sellTotal)}</td>
@@ -515,7 +622,7 @@ export function EstimateForm({
                       <button
                         type="button"
                         onClick={() => {
-                          const item = priceItems.find((p) => p.id === line.id);
+                          const item = priceItems.find((p) => p.id === line.priceItemId);
                           if (item) toggleItem(item, false);
                         }}
                         className="text-neutral-400 hover:text-red-600"

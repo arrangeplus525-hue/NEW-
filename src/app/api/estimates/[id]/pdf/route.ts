@@ -62,7 +62,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   return new Response(new Uint8Array(pdfBuffer), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename="estimate-${estimate.estimateNumber}.pdf"`,
+      // "attachment"だとスマホのブラウザで新しいタブが何も表示されず開けないことがあるため、
+      // ブラウザ内でそのまま表示させる"inline"にする。
+      "Content-Disposition": `inline; filename="estimate-${estimate.estimateNumber}.pdf"`,
     },
   });
 }

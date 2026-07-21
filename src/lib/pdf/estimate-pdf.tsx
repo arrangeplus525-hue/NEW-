@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
   page: {
     fontFamily: "NotoSansJP",
     fontSize: 9,
-    padding: 30,
+    padding: 24,
     color: "#1a1a1a",
   },
   pageNumber: {
     position: "absolute",
-    top: 20,
-    right: 30,
+    top: 16,
+    right: 24,
     fontSize: 9,
   },
   titleBand: {
@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#333",
     marginHorizontal: 160,
-    marginBottom: 14,
-    paddingVertical: 6,
+    marginBottom: 6,
+    paddingVertical: 5,
   },
   titleText: {
     fontSize: 18,
@@ -90,12 +90,12 @@ const styles = StyleSheet.create({
   dateRow: {
     textAlign: "right",
     fontSize: 9,
-    marginBottom: 10,
+    marginBottom: 4,
   },
   topRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 10,
+    marginBottom: 6,
   },
   leftCol: {
     width: "58%",
@@ -125,13 +125,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   companySeal: {
-    width: 30,
-    height: 30,
+    width: 52,
+    height: 50,
   },
   customerLine: {
     fontSize: 13,
     fontWeight: "bold",
-    marginBottom: 8,
+    marginBottom: 4,
     borderBottomWidth: 1,
     borderColor: "#333",
     paddingBottom: 2,
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: "dashed",
     borderColor: "#666",
-    padding: 8,
-    fontSize: 8,
-    lineHeight: 1.6,
+    padding: 6,
+    fontSize: 7.5,
+    lineHeight: 1.35,
   },
   siteInfo: {
-    marginTop: 10,
-    marginBottom: 10,
+    marginTop: 5,
+    marginBottom: 5,
     fontSize: 9,
   },
   siteInfoLine: {
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   amountBox: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 6,
   },
   amountLabel: {
     fontSize: 11,
@@ -172,14 +172,14 @@ const styles = StyleSheet.create({
   },
   table: {
     width: "100%",
-    marginBottom: 10,
+    marginBottom: 6,
   },
   tableHeaderRow: {
     flexDirection: "row",
     backgroundColor: PINK,
     borderWidth: 1,
     borderColor: "#333",
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   tableRow: {
     flexDirection: "row",
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderRightWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#333",
-    paddingVertical: 4,
+    paddingVertical: 3,
   },
   colNo: { width: "4%", textAlign: "center" },
   colCategory: { width: "18%", paddingLeft: 2 },
