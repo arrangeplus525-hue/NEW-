@@ -9,6 +9,7 @@ export interface Referrer {
   type: ReferrerType;
   phone?: string;
   note?: string;
+  commissionRate?: number; // 基本紹介料率（0〜1）。案件ごとに上書き可能
   createdAt: string;
 }
 
@@ -45,6 +46,9 @@ export interface Project {
   title: string;
   siteAddress?: string; // 現場住所（見積書の表紙に表示）
   status: ProjectStatus;
+  referralCommissionRate?: number; // 紹介料率（0〜1）。未設定なら紹介元マスタの基本料率を使う
+  personalKickbackAmount?: number; // 紹介元の営業マン個人へのバック（固定金額、円）
+  personalKickbackNote?: string; // バック先の氏名・メモ
   createdAt: string;
 }
 

@@ -4,13 +4,14 @@ import { useState } from "react";
 import type { Referrer, ReferrerType } from "@/domain/types";
 import { createReferrerAction, deleteReferrerAction, updateReferrerAction } from "./actions";
 
-type DraftItem = Pick<Referrer, "name" | "type" | "phone" | "note">;
+type DraftItem = Pick<Referrer, "name" | "type" | "phone" | "note" | "commissionRate">;
 
 const emptyDraft: DraftItem = {
   name: "",
   type: "real_estate_agency",
   phone: "",
   note: "",
+  commissionRate: 0.15,
 };
 
 const TYPE_LABELS: Record<ReferrerType, string> = {
@@ -98,6 +99,7 @@ export function ReferrerTable({ initialItems }: { initialItems: Referrer[] }) {
                 <th className="px-3 py-3 font-medium">名前</th>
                 <th className="px-3 py-3 font-medium">種別</th>
                 <th className="px-3 py-3 font-medium">電話番号</th>
+                <th className="px-3 py-3 font-medium">紹介料率</th>
                 <th className="px-3 py-3 font-medium">メモ</th>
                 <th className="px-3 py-3" />
               </tr>
@@ -105,7 +107,7 @@ export function ReferrerTable({ initialItems }: { initialItems: Referrer[] }) {
             <tbody>
               {items.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-4 py-8 text-center text-neutral-400">
+                  <td colSpan={6} className="px-4 py-8 text-center text-neutral-400">
                     まだ紹介元がありません
                   </td>
                 </tr>
@@ -140,6 +142,19 @@ export function ReferrerTable({ initialItems }: { initialItems: Referrer[] }) {
                         value={draft.phone ?? ""}
                         onChange={(e) => updateDraft(item.id, { phone: e.target.value })}
                       />
+                    </td>
+                    <td className="px-3 py-2">
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          min={0}
+                          max={100}
+                          className="w-16 rounded border border-neutral-300 px-2 py-1"
+                          value={Math.round((draft.commissionRate ?? 0) * 100)}
+                          onChange={(e) => updateDraft(item.id, { commissionRate: Number(e.target.value) / 100 })}
+                        />
+                        <span className="text-neutral-400">%</span>
+                      </div>
                     </td>
                     <td className="px-3 py-2">
                       <input
@@ -199,6 +214,18 @@ export function ReferrerTable({ initialItems }: { initialItems: Referrer[] }) {
             value={newItem.phone ?? ""}
             onChange={(e) => setNewItem((prev) => ({ ...prev, phone: e.target.value }))}
           />
+          <label className="flex items-center gap-2 rounded border border-neutral-300 px-2 py-2 text-sm text-neutral-600">
+            紹介料率
+            <input
+              type="number"
+              min={0}
+              max={100}
+              className="w-16 rounded border border-neutral-300 px-2 py-1"
+              value={Math.round((newItem.commissionRate ?? 0) * 100)}
+              onChange={(e) => setNewItem((prev) => ({ ...prev, commissionRate: Number(e.target.value) / 100 }))}
+            />
+            %
+          </label>
           <input
             className="rounded border border-neutral-300 px-2 py-2 sm:col-span-4"
             placeholder="メモ"

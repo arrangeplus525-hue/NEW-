@@ -48,6 +48,7 @@ import type {
   UpdatePriceMasterItemInput,
   UpdateProcessTaskInput,
   UpdatePropertyInput,
+  UpdateProjectCommissionsInput,
   UpdatePurchaseOrderInput,
   UpdateReferrerInput,
   UpdateResaleProjectInput,
@@ -233,6 +234,15 @@ class MockProjectRepository implements ProjectRepository {
       throw new Error("案件が見つかりません");
     }
     const updated: Project = { ...store.projects[index], status };
+    store.projects[index] = updated;
+    return updated;
+  }
+  async updateCommissions(id: string, input: UpdateProjectCommissionsInput): Promise<Project> {
+    const index = store.projects.findIndex((p) => p.id === id);
+    if (index === -1) {
+      throw new Error("案件が見つかりません");
+    }
+    const updated: Project = { ...store.projects[index], ...input };
     store.projects[index] = updated;
     return updated;
   }

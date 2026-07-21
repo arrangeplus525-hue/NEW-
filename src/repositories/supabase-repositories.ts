@@ -52,6 +52,7 @@ import type {
   UpdateCustomerInput,
   UpdatePriceMasterItemInput,
   UpdateProcessTaskInput,
+  UpdateProjectCommissionsInput,
   UpdatePropertyInput,
   UpdatePurchaseOrderInput,
   UpdateReferrerInput,
@@ -75,6 +76,7 @@ function mapReferrer(row: Record<string, unknown>): Referrer {
     type: row.type as Referrer["type"],
     phone: (row.phone as string) ?? undefined,
     note: (row.note as string) ?? undefined,
+    commissionRate: row.commission_rate == null ? undefined : n(row.commission_rate),
     createdAt: row.created_at as string,
   };
 }
@@ -93,6 +95,7 @@ class SupabaseReferrerRepository implements ReferrerRepository {
         type: input.type,
         phone: input.phone ?? null,
         note: input.note ?? null,
+        commission_rate: input.commissionRate ?? null,
       })
       .select()
       .single();
@@ -107,6 +110,7 @@ class SupabaseReferrerRepository implements ReferrerRepository {
         type: input.type,
         phone: input.phone ?? null,
         note: input.note ?? null,
+        commission_rate: input.commissionRate ?? null,
       })
       .eq("id", input.id)
       .select()
@@ -258,6 +262,9 @@ function mapProject(row: Record<string, unknown>): Project {
     title: row.title as string,
     siteAddress: (row.site_address as string | null) ?? undefined,
     status: row.status as ProjectStatus,
+    referralCommissionRate: row.referral_commission_rate == null ? undefined : n(row.referral_commission_rate),
+    personalKickbackAmount: row.personal_kickback_amount == null ? undefined : n(row.personal_kickback_amount),
+    personalKickbackNote: (row.personal_kickback_note as string | null) ?? undefined,
     createdAt: row.created_at as string,
   };
 }
@@ -293,6 +300,20 @@ class SupabaseProjectRepository implements ProjectRepository {
   }
   async updateStatus(id: string, status: ProjectStatus): Promise<Project> {
     const { data, error } = await getSupabaseClient().from("projects").update({ status }).eq("id", id).select().single();
+    if (error) throw error;
+    return mapProject(data);
+  }
+  async updateCommissions(id: string, input: UpdateProjectCommissionsInput): Promise<Project> {
+    const { data, error } = await getSupabaseClient()
+      .from("projects")
+      .update({
+        referral_commission_rate: input.referralCommissionRate ?? null,
+        personal_kickback_amount: input.personalKickbackAmount ?? null,
+        personal_kickback_note: input.personalKickbackNote ?? null,
+      })
+      .eq("id", id)
+      .select()
+      .single();
     if (error) throw error;
     return mapProject(data);
   }

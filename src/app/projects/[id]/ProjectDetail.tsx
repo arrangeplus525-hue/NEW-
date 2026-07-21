@@ -12,6 +12,7 @@ import type {
   Project,
   ProjectStatus,
   PurchaseOrder,
+  Referrer,
   Supplier,
 } from "@/domain/types";
 import type { EstimateSummary } from "@/lib/calculations/estimate-calculations";
@@ -35,6 +36,7 @@ function yen(n: number): string {
 export function ProjectDetail({
   project,
   customer,
+  referrer,
   estimateSummaries,
   craftsmen,
   suppliers,
@@ -46,6 +48,7 @@ export function ProjectDetail({
 }: {
   project: Project;
   customer: Customer | null;
+  referrer: Referrer | null;
   estimateSummaries: { estimate: Estimate; summary: EstimateSummary }[];
   craftsmen: Craftsman[];
   suppliers: Supplier[];
@@ -186,7 +189,16 @@ export function ProjectDetail({
         />
       )}
 
-      <ProfitAnalysis {...profitAnalysis} invoicedTotal={invoicedTotal} collectedTotal={collectedTotal} />
+      <ProfitAnalysis
+        {...profitAnalysis}
+        invoicedTotal={invoicedTotal}
+        collectedTotal={collectedTotal}
+        projectId={project.id}
+        referrer={referrer}
+        referralCommissionRate={project.referralCommissionRate}
+        personalKickbackAmount={project.personalKickbackAmount}
+        personalKickbackNote={project.personalKickbackNote}
+      />
     </div>
   );
 }

@@ -50,12 +50,19 @@ export interface PriceMasterRepository {
   remove(id: string): Promise<void>;
 }
 
+export interface UpdateProjectCommissionsInput {
+  referralCommissionRate?: number;
+  personalKickbackAmount?: number;
+  personalKickbackNote?: string;
+}
+
 export interface ProjectRepository {
   list(): Promise<Project[]>;
   getById(id: string): Promise<Project | null>;
   listByCustomer(customerId: string): Promise<Project[]>;
   createForCustomer(customerId: string, title: string, siteAddress?: string): Promise<Project>;
   updateStatus(id: string, status: ProjectStatus): Promise<Project>;
+  updateCommissions(id: string, input: UpdateProjectCommissionsInput): Promise<Project>;
 }
 
 export interface EstimateRepository {

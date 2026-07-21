@@ -16,12 +16,20 @@ import type {
   NewProcessTaskInput,
   NewPurchaseOrderInput,
   UpdateProcessTaskInput,
+  UpdateProjectCommissionsInput,
   UpdatePurchaseOrderInput,
 } from "@/repositories/types";
 import { suggestCraftsmanForCategory } from "@/lib/ai/craftsman-suggestion";
 
 export async function updateProjectStatusAction(id: string, status: ProjectStatus): Promise<Project> {
   return projectRepository.updateStatus(id, status);
+}
+
+export async function updateProjectCommissionsAction(
+  id: string,
+  input: UpdateProjectCommissionsInput
+): Promise<Project> {
+  return projectRepository.updateCommissions(id, input);
 }
 
 export async function createProcessTaskAction(input: NewProcessTaskInput): Promise<ProcessTask> {

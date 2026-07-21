@@ -8,6 +8,7 @@ import {
   processTaskRepository,
   projectRepository,
   purchaseOrderRepository,
+  referrerRepository,
   supplierRepository,
 } from "@/repositories";
 import { calcEstimateSummary } from "@/lib/calculations/estimate-calculations";
@@ -41,6 +42,10 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
   );
   const paymentsByInvoice = Object.fromEntries(paymentsByInvoiceEntries);
 
+  const referrer = customer?.referrerId
+    ? (await referrerRepository.list()).find((r) => r.id === customer.referrerId) ?? null
+    : null;
+
   const estimateRevenueTotal = estimateSummaries.reduce((sum, e) => sum + e.summary.subtotalSell, 0);
   const estimateCostTotal = estimateSummaries.reduce((sum, e) => sum + e.summary.subtotalCost, 0);
   const actualCostTotal = purchaseOrders.reduce((sum, o) => sum + o.amount, 0);
@@ -49,6 +54,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
     <ProjectDetail
       project={project}
       customer={customer}
+      referrer={referrer}
       estimateSummaries={estimateSummaries}
       craftsmen={craftsmen}
       suppliers={suppliers}
