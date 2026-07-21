@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "ARRANGE PLUS ERP",
   description: "ARRANGE PLUS 社内基幹システム",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
