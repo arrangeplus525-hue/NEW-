@@ -35,6 +35,7 @@ import type {
   NewProcessTaskInput,
   NewPropertyInput,
   NewPurchaseOrderInput,
+  NewReferrerInput,
   NewResaleProjectInput,
   NewSupplierInput,
   PaymentRepository,
@@ -53,6 +54,7 @@ import type {
   UpdateProcessTaskInput,
   UpdatePropertyInput,
   UpdatePurchaseOrderInput,
+  UpdateReferrerInput,
   UpdateResaleProjectInput,
   UpdateSupplierInput,
 } from "./types";
@@ -82,6 +84,39 @@ class SupabaseReferrerRepository implements ReferrerRepository {
     const { data, error } = await getSupabaseClient().from("referrers").select("*").order("created_at");
     if (error) throw error;
     return (data ?? []).map(mapReferrer);
+  }
+  async create(input: NewReferrerInput): Promise<Referrer> {
+    const { data, error } = await getSupabaseClient()
+      .from("referrers")
+      .insert({
+        name: input.name,
+        type: input.type,
+        phone: input.phone ?? null,
+        note: input.note ?? null,
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    return mapReferrer(data);
+  }
+  async update(input: UpdateReferrerInput): Promise<Referrer> {
+    const { data, error } = await getSupabaseClient()
+      .from("referrers")
+      .update({
+        name: input.name,
+        type: input.type,
+        phone: input.phone ?? null,
+        note: input.note ?? null,
+      })
+      .eq("id", input.id)
+      .select()
+      .single();
+    if (error) throw error;
+    return mapReferrer(data);
+  }
+  async remove(id: string): Promise<void> {
+    const { error } = await getSupabaseClient().from("referrers").delete().eq("id", id);
+    if (error) throw error;
   }
 }
 

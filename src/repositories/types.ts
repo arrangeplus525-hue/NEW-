@@ -30,8 +30,14 @@ export interface CustomerRepository {
   update(input: UpdateCustomerInput): Promise<Customer>;
 }
 
+export type NewReferrerInput = Omit<Referrer, "id" | "createdAt">;
+export type UpdateReferrerInput = Omit<Referrer, "createdAt">;
+
 export interface ReferrerRepository {
   list(): Promise<Referrer[]>;
+  create(input: NewReferrerInput): Promise<Referrer>;
+  update(input: UpdateReferrerInput): Promise<Referrer>;
+  remove(id: string): Promise<void>;
 }
 
 export type NewPriceMasterItemInput = Omit<PriceMasterItem, "id" | "sellPrice">;

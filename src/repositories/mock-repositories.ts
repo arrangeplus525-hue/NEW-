@@ -30,6 +30,7 @@ import type {
   NewProcessTaskInput,
   NewPropertyInput,
   NewPurchaseOrderInput,
+  NewReferrerInput,
   NewResaleProjectInput,
   NewSupplierInput,
   PaymentRepository,
@@ -48,6 +49,7 @@ import type {
   UpdateProcessTaskInput,
   UpdatePropertyInput,
   UpdatePurchaseOrderInput,
+  UpdateReferrerInput,
   UpdateResaleProjectInput,
   UpdateSupplierInput,
 } from "./types";
@@ -75,6 +77,7 @@ interface MockStore {
   estimates: Estimate[];
   priceMasterItems: PriceMasterItem[];
   customers: Customer[];
+  referrers: Referrer[];
   craftsmen: Craftsman[];
   suppliers: Supplier[];
   processTasks: ProcessTask[];
@@ -95,6 +98,7 @@ const store: MockStore =
     estimates: [],
     priceMasterItems: [...mockPriceMasterItems],
     customers: [...mockCustomers],
+    referrers: [...mockReferrers],
     craftsmen: [...mockCraftsmen],
     suppliers: [...mockSuppliers],
     processTasks: [],
@@ -146,7 +150,28 @@ class MockCustomerRepository implements CustomerRepository {
 
 class MockReferrerRepository implements ReferrerRepository {
   async list(): Promise<Referrer[]> {
-    return mockReferrers;
+    return store.referrers;
+  }
+  async create(input: NewReferrerInput): Promise<Referrer> {
+    const referrer: Referrer = {
+      ...input,
+      id: crypto.randomUUID(),
+      createdAt: new Date().toISOString(),
+    };
+    store.referrers.push(referrer);
+    return referrer;
+  }
+  async update(input: UpdateReferrerInput): Promise<Referrer> {
+    const index = store.referrers.findIndex((r) => r.id === input.id);
+    if (index === -1) {
+      throw new Error("紹介元が見つかりません");
+    }
+    const updated: Referrer = { ...store.referrers[index], ...input };
+    store.referrers[index] = updated;
+    return updated;
+  }
+  async remove(id: string): Promise<void> {
+    store.referrers = store.referrers.filter((r) => r.id !== id);
   }
 }
 

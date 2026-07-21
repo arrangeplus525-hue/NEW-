@@ -4,6 +4,7 @@ import { signOutAction } from "./login/actions";
 const secondaryLinks = [
   { href: "/price-master", label: "単価マスタ" },
   { href: "/customers", label: "顧客管理" },
+  { href: "/referrers", label: "紹介元管理" },
   { href: "/projects", label: "案件管理" },
   { href: "/craftsmen", label: "職人管理" },
   { href: "/suppliers", label: "商社管理" },
